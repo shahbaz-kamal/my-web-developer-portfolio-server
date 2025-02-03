@@ -3,7 +3,12 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const {
+  MongoClient,
+  ServerApiVersion,
+  ObjectId,
+  Timestamp,
+} = require("mongodb");
 
 app.use(express.json());
 
@@ -30,22 +35,14 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
-    // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
-    // console.log(
-    //   "Pinged your deployment. You successfully connected to MongoDB!"
-    // );
-
     //? starts here
 
     const projectCollections = client
       .db("web-developer-portfolio-db")
       .collection("project-collections");
-    const messageCollections = client
+    const messageCollection = client
       .db("web-developer-portfolio-db")
-      .collection("message-collections");
+      .collection("messages");
 
     //   *geting data from database and show it to the server side
 
@@ -68,6 +65,33 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await projectCollections.findOne(query);
       res.send(result);
+    });
+    // *message section
+    app.get("/messages", async (req, res) => {
+      const result = await messageCollection
+        .find()
+        .sort({ timeStamp: -1 })
+        .toArray();
+      res.send(result);
+    });
+
+    app.post("/messages", async (req, res) => {
+      const data = req.body;
+      const newMessage = { ...data, timeStamp: new Date(), isRead: false };
+      const result = await messageCollection.insertOne(newMessage);
+      res.send(result);
+    });
+
+    app.patch("/message/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          isRead: true,
+        },
+      };
+      const result=await messageCollection.updateOne(filter,updatedDoc)
+      res.send(result)
     });
   } finally {
     // Ensures that the client will close when you finish/error
