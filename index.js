@@ -47,7 +47,10 @@ async function run() {
     //   *geting data from database and show it to the server side
 
     app.get("/all-projects", async (req, res) => {
-      const result = await projectCollections.find().toArray();
+      const result = await projectCollections
+        .find()
+        .sort({ publicationDate: 1 })
+        .toArray();
       res.send(result);
     });
 
@@ -61,7 +64,7 @@ async function run() {
     // *getting spesific id from client side and createing api for a spesific project for view details
     app.get("/view-details/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const query = { _id: new ObjectId(id) };
       const result = await projectCollections.findOne(query);
       res.send(result);
@@ -90,8 +93,8 @@ async function run() {
           isRead: true,
         },
       };
-      const result=await messageCollection.updateOne(filter,updatedDoc)
-      res.send(result)
+      const result = await messageCollection.updateOne(filter, updatedDoc);
+      res.send(result);
     });
   } finally {
     // Ensures that the client will close when you finish/error
