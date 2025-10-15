@@ -49,7 +49,7 @@ async function run() {
     app.get("/all-projects", async (req, res) => {
       const result = await projectCollections
         .find()
-        .sort({ priorityOrder: -1 })
+        .sort({ priorityOrder: 1 })
         .toArray();
       res.send(result);
     });
